@@ -1,6 +1,4 @@
 using dotnetcore_rpg.Dtos.Character;
-using dotnetcore_rpg.Models;
-using dotnetcore_rpg.Services.CharacterService;
 using Microsoft.AspNetCore.Mvc;
 namespace dotnetcore_rpg.Controllers
 {
@@ -29,5 +27,15 @@ namespace dotnetcore_rpg.Controllers
         {
             return Ok(await _characterService.AddCharacter(newcharacter));
         }
+        [HttpPut]
+        public async Task<IActionResult> UpdateCharacter(UpdatedCharacterDto updatedCharacter)
+        {
+            return Ok(await _characterService.UpdateCharacter(updatedCharacter));
+        }
+        [HttpDelete("{id}")]
+            public async Task<IActionResult> Delete(int id)
+            {
+                return Ok(await _characterService.Delete(id));
+            }
     }
 }
