@@ -20,6 +20,11 @@ namespace dotnetcore_rpg.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByID(int id)
         {
+            var response = await _characterService.GetCharacterByID(id);
+            if (response.Data is null)
+            {
+                return NotFound(response);
+            }
             return Ok(await _characterService.GetCharacterByID(id));
         }
         [HttpPost]
@@ -30,12 +35,24 @@ namespace dotnetcore_rpg.Controllers
         [HttpPut]
         public async Task<IActionResult> UpdateCharacter(UpdatedCharacterDto updatedCharacter)
         {
-            return Ok(await _characterService.UpdateCharacter(updatedCharacter));
+            var result = 
+            await _characterService.UpdateCharacter(updatedCharacter);
+            if(result.Data is null)
+            {
+                return NotFound(result);
+            }
+                return Ok(result);
         }
         [HttpDelete("{id}")]
             public async Task<IActionResult> Delete(int id)
             {
-                return Ok(await _characterService.Delete(id));
+                var result = 
+                await _characterService.Delete(id);
+                if(result.Success is false)
+                {
+                    return BadRequest(result);
+                }
+                    return Ok(result);
             }
     }
 }

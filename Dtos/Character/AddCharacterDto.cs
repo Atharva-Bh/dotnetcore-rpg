@@ -1,5 +1,3 @@
-using dotnetcore_rpg.Models;
-
 namespace dotnetcore_rpg.Dtos.Character
 {
     public class AddCharacterDto
