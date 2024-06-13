@@ -2,6 +2,9 @@ global using dotnetcore_rpg.Services.CharacterService;
 global using dotnetcore_rpg.Models;
 using dotnetcore_rpg.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +19,19 @@ builder.Services.AddScoped<IAuthRepo , AuthRepo>();
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).
+AddJwtBearer(options => 
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true , 
+        IssuerSigningKey= new SymmetricSecurityKey
+                (Encoding.UTF8.GetBytes(builder.Configuration.GetSection
+                ("AppSetting:Token").Value ?? string.Empty)) , 
+        ValidateIssuer = false , 
+        ValidateAudience = false
+    };
+});
 
 var app = builder.Build();
 
@@ -27,7 +43,7 @@ if (app.Environment.IsDevelopment())
 }
 
 //app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

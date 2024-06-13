@@ -1,14 +1,19 @@
-
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace dotnetcore_rpg.Data
 {
     public class AuthRepo : IAuthRepo
     {
         private readonly DataContext _context;
+        private readonly IConfiguration _configuration;
 
-        public AuthRepo(DataContext context)
+        public AuthRepo(DataContext context , IConfiguration configuration)
         {
+            _configuration = configuration;
             _context = context;
         }
         public async Task<ServiceResponse<string>> Login(string username, string password)
@@ -26,7 +31,7 @@ namespace dotnetcore_rpg.Data
             }
             else
             {
-                response.Data = user.ID.ToString();
+                response.Data = CreateToken(user);
             }
             }catch(Exception ex)
             {
@@ -96,6 +101,26 @@ namespace dotnetcore_rpg.Data
                 }
                 return true;
             }
+        }
+        private string CreateToken(User user)
+        {
+            List<Claim> claims = new List<Claim>{
+                new Claim(ClaimTypes.NameIdentifier , user.ID.ToString()) ,
+                new Claim(ClaimTypes.Name , user.Username) 
+            };
+                SymmetricSecurityKey key = new SymmetricSecurityKey
+                (Encoding.UTF8.GetBytes(_configuration.GetSection
+                ("AppSetting:Token").Value ?? string.Empty));
+                SigningCredentials creds = new SigningCredentials
+            (key , SecurityAlgorithms.HmacSha512Signature);
+            SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor{
+                Subject = new ClaimsIdentity(claims) , 
+                Expires = DateTime.Now.AddDays(1) , 
+                SigningCredentials = creds
+            };
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
     }
 }

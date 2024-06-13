@@ -28,12 +28,14 @@ namespace dotnetcore_rpg.Services.CharacterService
             return response;
         }
 
-        public  async Task<ServiceResponse<List<GetCharacterDto>>> GetAll()
+        public  async Task<ServiceResponse<List<GetCharacterDto>>> GetAll(int userID)
         {
             var response = 
             new ServiceResponse<List<GetCharacterDto>>();
            // response.Data = characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
            response.Data = await _context.Characters.
+           Include(c => c.User).
+           Where(c => c.User!.ID == userID).
            Select(c => _mapper.Map<GetCharacterDto>(c)).ToListAsync();
            return response;
         }
