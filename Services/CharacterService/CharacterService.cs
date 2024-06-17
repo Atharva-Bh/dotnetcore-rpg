@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AutoMapper;
 using dotnetcore_rpg.Data;
 using dotnetcore_rpg.Dtos.Character;
@@ -9,18 +10,32 @@ namespace dotnetcore_rpg.Services.CharacterService
     {
         private readonly IMapper _mapper;
         private readonly DataContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CharacterService(IMapper mapper , DataContext context)
+        public CharacterService(IMapper mapper , 
+        DataContext context , IHttpContextAccessor httpContextAccessor)
         {
+            _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
             _context = context;
         }
+        private int GetUserID()
+        {
+            var currentUser = _httpContextAccessor.HttpContext?.
+            User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int userID = int.Parse(currentUser ?? string.Empty);
+            return userID;
+        } /*=> int.Parse(_httpContextAccessor.HttpContext.User.
+        FindFirstValue(ClaimTypes.NameIdentifier));*/
+
         public  async Task<ServiceResponse<List<GetCharacterDto>>> 
         AddCharacter(AddCharacterDto newCharacter)
         {
             var response = 
             new ServiceResponse<List<GetCharacterDto>>();
             var character = _mapper.Map<Character>(newCharacter);
+            character.User = await _context.Users.
+            FirstOrDefaultAsync(u => u.ID == GetUserID());
             _context.Characters.Add(character);
             await _context.SaveChangesAsync();
             response.Data = _context.Characters.
@@ -28,14 +43,14 @@ namespace dotnetcore_rpg.Services.CharacterService
             return response;
         }
 
-        public  async Task<ServiceResponse<List<GetCharacterDto>>> GetAll(int userID)
+        public  async Task<ServiceResponse<List<GetCharacterDto>>> GetAll()
         {
             var response = 
             new ServiceResponse<List<GetCharacterDto>>();
            // response.Data = characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
            response.Data = await _context.Characters.
            Include(c => c.User).
-           Where(c => c.User!.ID == userID).
+           Where(c => c.User!.ID == GetUserID()).
            Select(c => _mapper.Map<GetCharacterDto>(c)).ToListAsync();
            return response;
         }
@@ -43,7 +58,10 @@ namespace dotnetcore_rpg.Services.CharacterService
         public  async Task<ServiceResponse<GetCharacterDto>> GetCharacterByID(int id)
         {
             var response = new ServiceResponse<GetCharacterDto>();
-            var character = await _context.Characters.FirstOrDefaultAsync(c => c.ID == id);
+            var character = await _context.Characters.
+            Include(c => c.User).Where
+            (c => c.User!.ID == GetUserID()).
+            FirstOrDefaultAsync(c => c.ID == id);
             if(character is null)
             {
                 response.Success = false;

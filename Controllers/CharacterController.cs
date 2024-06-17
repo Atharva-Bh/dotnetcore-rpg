@@ -1,8 +1,6 @@
-using System.Security.Claims;
 using dotnetcore_rpg.Dtos.Character;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Identity.Client;
 namespace dotnetcore_rpg.Controllers
 {
     [Authorize]
@@ -20,29 +18,29 @@ namespace dotnetcore_rpg.Controllers
         [HttpGet("GetAll")]
         public async Task<IActionResult> Get()
         {
-            var response = new 
-            ServiceResponse<List<GetCharacterDto>>();
-           // int id = int.Parse(User.Claims.FirstOrDefault
-            //(u => u.Type == ClaimTypes.NameIdentifier ).Value ?? string.Empty);
-            var claim = User.Claims.FirstOrDefault(
-                u => u.Type == ClaimTypes.NameIdentifier);
-                int id = int.Parse(claim?.Value ?? string.Empty);
-                if (claim != null)
-                {
-                     return Ok(await _characterService.GetAll(id));
-                }
-                else
-                {
-                    response.Success = false;
-                    return BadRequest(response);
-                }
-    
-            //return Ok(await _characterService.GetAll());
+        //     var response = new 
+        //     ServiceResponse<List<GetCharacterDto>>();
+        //    // int id = int.Parse(User.Claims.FirstOrDefault
+        //     //(u => u.Type == ClaimTypes.NameIdentifier ).Value ?? string.Empty);
+        //     var claim = User.Claims.FirstOrDefault(
+        //         u => u.Type == ClaimTypes.NameIdentifier);
+        //         int id = int.Parse(claim?.Value ?? string.Empty);
+        //         if (claim != null)
+        //         {
+        //              return Ok(await _characterService.GetAll(id));
+        //         }
+        //         else
+        //         {
+        //             response.Success = false;
+        //             return BadRequest(response);
+        //         }
+        return Ok(await _characterService.GetAll());
         }
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByID(int id)
         {
-            var response = await _characterService.GetCharacterByID(id);
+            var response = await
+             _characterService.GetCharacterByID(id);
             if (response.Data is null)
             {
                 return NotFound(response);

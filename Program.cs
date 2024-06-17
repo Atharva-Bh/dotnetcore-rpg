@@ -32,6 +32,7 @@ AddJwtBearer(options =>
         ValidateAudience = false
     };
 });
+builder.Services.AddSingleton<IHttpContextAccessor , HttpContextAccessor>();
 
 var app = builder.Build();
 
